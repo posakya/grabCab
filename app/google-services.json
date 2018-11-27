@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "784771683105",
+    "firebase_url": "https://grabcab-545e9.firebaseio.com",
+    "project_id": "grabcab-545e9",
+    "storage_bucket": "grabcab-545e9.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:784771683105:android:f6408059cd89ba9d",
+        "android_client_info": {
+          "package_name": "com.grabcab.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "784771683105-pl97f0j8g0fik8d9a3v2te59vs0pqrnq.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.grabcab.app",
+            "certificate_hash": "ae238042fcba939b85c65f984f106a258d6afd9b"
+          }
+        },
+        {
+          "client_id": "784771683105-ti2r9iiq3go2kdp1mhi1feac81lh5muv.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCWhQDmCa5qso_vu58mjHhQLXC_c3NPenQ"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "784771683105-ti2r9iiq3go2kdp1mhi1feac81lh5muv.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
