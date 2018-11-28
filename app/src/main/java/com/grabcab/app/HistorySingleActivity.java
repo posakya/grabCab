@@ -2,13 +2,17 @@ package com.grabcab.app;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.format.DateFormat;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RatingBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -48,6 +52,7 @@ import org.json.JSONObject;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -64,8 +69,9 @@ public class HistorySingleActivity extends AppCompatActivity implements OnMapRea
     private ImageView userImage;
 
     private RatingBar mRatingBar;
+    String customerPayStatus;
 
-    private Button mPay;
+    private Button mPay,payCash,btnApprove;
 
     private DatabaseReference historyRideInfoDb;
 
@@ -76,6 +82,8 @@ public class HistorySingleActivity extends AppCompatActivity implements OnMapRea
 
     private GoogleMap mMap;
     private SupportMapFragment mMapFragment;
+    TextView ridePrice1;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -98,17 +106,55 @@ public class HistorySingleActivity extends AppCompatActivity implements OnMapRea
         rideDate = (TextView) findViewById(R.id.rideDate);
         userName = (TextView) findViewById(R.id.userName);
         userPhone = (TextView) findViewById(R.id.userPhone);
+        btnApprove = findViewById(R.id.btnApprove);
+
+        ridePrice1 = findViewById(R.id.ridePrice);
 
         userImage = (ImageView) findViewById(R.id.userImage);
 
         mRatingBar = (RatingBar) findViewById(R.id.ratingBar);
 
         mPay = findViewById(R.id.pay);
+        payCash = findViewById(R.id.payCash);
 
         currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
         historyRideInfoDb = FirebaseDatabase.getInstance().getReference().child("history").child(rideId);
+
         getRideInformation();
+
+        btnApprove.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Toast.makeText(HistorySingleActivity.this, "clicked", Toast.LENGTH_SHORT).show();
+                AlertDialog alertDialog = new AlertDialog.Builder(HistorySingleActivity.this, android.app.AlertDialog.THEME_HOLO_LIGHT).create();
+
+
+                alertDialog.setTitle(R.string.app_name);
+                alertDialog.setMessage("Are you sure payment done?");
+
+
+                alertDialog.setButton(android.app.AlertDialog.BUTTON_NEUTRAL, "OK",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                HashMap map = new HashMap();
+                                map.put("customerPaid","true");
+                                historyRideInfoDb.updateChildren(map);
+                                mPay.setEnabled(false);
+                                payCash.setEnabled(false);
+                                btnApprove.setEnabled(false);
+                                dialog.dismiss();
+                            }
+                        });
+
+                alertDialog.show();
+                final Button neutralButton = alertDialog.getButton(android.app.AlertDialog.BUTTON_NEUTRAL);
+                LinearLayout.LayoutParams neutralButtonLL = (LinearLayout.LayoutParams) neutralButton.getLayoutParams();
+                neutralButtonLL.gravity = Gravity.CENTER;
+                neutralButton.setTextColor(getResources().getColor(R.color.black));
+                neutralButton.setLayoutParams(neutralButtonLL);
+            }
+        });
 
     }
 
@@ -135,19 +181,32 @@ public class HistorySingleActivity extends AppCompatActivity implements OnMapRea
                             }
                         }
                         if (child.getKey().equals("timestamp")){
-                            rideDate.setText(getDate(Long.valueOf(child.getValue().toString())));
+                            rideDate.setText("Time : "+getDate(Long.valueOf(child.getValue().toString())));
                         }
                         if (child.getKey().equals("rating")){
                             mRatingBar.setRating(Integer.valueOf(child.getValue().toString()));
 
                         }
                         if (child.getKey().equals("customerPaid")){
-                            customerPaid =true;
+                            if (child.getValue().toString().equals("true")){
+                                customerPaid = true;
+                                mPay.setEnabled(false);
+                                btnApprove.setEnabled(false);
+                                payCash.setEnabled(false);
+                            }else if (child.getValue().toString().equals("pending")){
+                                customerPaid = false;
+                                mPay.setEnabled(true);
+                                btnApprove.setVisibility(View.VISIBLE);
+                                btnApprove.setEnabled(true);
+                                payCash.setEnabled(true);
+                            }
+
                         }
                         if (child.getKey().equals("distance")){
                             distance = child.getValue().toString();
-                            rideDistance.setText(distance.substring(0, Math.min(distance.length(), 5)) + " km");
+                            rideDistance.setText("Distance : "+distance.substring(0, Math.min(distance.length(), 5)) + " km");
                             ridePrice = Double.valueOf(distance) * 0.5;
+                            ridePrice1.setText(String.format("Price : Rs. %.02f",Double.valueOf(distance) * 50));
 
                         }
                         if (child.getKey().equals("destination")){
@@ -172,6 +231,8 @@ public class HistorySingleActivity extends AppCompatActivity implements OnMapRea
     private void displayCustomerRelatedObjects() {
         mRatingBar.setVisibility(View.VISIBLE);
         mPay.setVisibility(View.VISIBLE);
+        payCash.setVisibility(View.VISIBLE);
+        btnApprove.setVisibility(View.GONE);
         mRatingBar.setOnRatingBarChangeListener(new RatingBar.OnRatingBarChangeListener() {
             @Override
             public void onRatingChanged(RatingBar ratingBar, float rating, boolean fromUser) {
@@ -180,15 +241,74 @@ public class HistorySingleActivity extends AppCompatActivity implements OnMapRea
                 mDriverRatingDb.child(rideId).setValue(rating);
             }
         });
-        if(customerPaid){
-            mPay.setEnabled(false);
-        }else{
-            mPay.setEnabled(true);
-        }
+        DatabaseReference customerRefrence = FirebaseDatabase.getInstance().getReference().child("history").child(rideId).child("customerPaid");
+
+        customerRefrence.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()){
+                  String customerPayStatus = dataSnapshot.getValue().toString();
+                    if (customerPayStatus.equals("true")){
+                        customerPaid = true;
+                        mPay.setEnabled(false);
+                        payCash.setEnabled(false);
+                    }else{
+                        customerPaid = false;
+                        mPay.setEnabled(true);
+                        payCash.setEnabled(true);
+                    }
+
+
+
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
+
         mPay.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 payPalPayment();
+            }
+        });
+
+
+
+        payCash.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+
+                AlertDialog alertDialog = new AlertDialog.Builder(HistorySingleActivity.this, android.app.AlertDialog.THEME_HOLO_LIGHT).create();
+
+
+                alertDialog.setTitle(R.string.app_name);
+                alertDialog.setMessage("Pay");
+
+
+                alertDialog.setButton(android.app.AlertDialog.BUTTON_NEUTRAL, "OK",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                HashMap map = new HashMap();
+                                map.put("customerPaid","pending");
+                                historyRideInfoDb.updateChildren(map);
+                                mPay.setEnabled(false);
+                                payCash.setEnabled(false);
+                                dialog.dismiss();
+                            }
+                        });
+
+                alertDialog.show();
+                final Button neutralButton = alertDialog.getButton(android.app.AlertDialog.BUTTON_NEUTRAL);
+                LinearLayout.LayoutParams neutralButtonLL = (LinearLayout.LayoutParams) neutralButton.getLayoutParams();
+                neutralButtonLL.gravity = Gravity.CENTER;
+                neutralButton.setTextColor(getResources().getColor(R.color.black));
+                neutralButton.setLayoutParams(neutralButtonLL);
             }
         });
     }
@@ -224,8 +344,12 @@ public class HistorySingleActivity extends AppCompatActivity implements OnMapRea
 
                         if(paymentResponse.equals("approved")){
                             Toast.makeText(getApplicationContext(), "Payment successful", Toast.LENGTH_LONG).show();
-                            historyRideInfoDb.child("customerPaid").setValue(true);
+//                            historyRideInfoDb.child("customerPaid").setValue(true);
+                            HashMap map = new HashMap();
+                            map.put("customerPaid","true");
+                            historyRideInfoDb.updateChildren(map);
                             mPay.setEnabled(false);
+                            payCash.setEnabled(false);
                         }
                     } catch (JSONException e) {
                         e.printStackTrace();
@@ -299,7 +423,7 @@ public class HistorySingleActivity extends AppCompatActivity implements OnMapRea
     @Override
     public void onRoutingFailure(RouteException e) {
         if(e != null) {
-            Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+//            Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }else {
             Toast.makeText(this, "Something went wrong, Try again", Toast.LENGTH_SHORT).show();
         }

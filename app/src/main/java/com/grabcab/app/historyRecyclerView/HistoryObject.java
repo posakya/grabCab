@@ -8,9 +8,25 @@ public class HistoryObject {
     private String rideId;
     private String time;
 
-    public HistoryObject(String rideId, String time){
+    public HistoryObject(String rideId, String time) {
         this.rideId = rideId;
         this.time = time;
+    }
+
+    private String customerPaid;
+
+    public String getCustomerPaid() {
+        return customerPaid;
+    }
+
+    public void setCustomerPaid(String customerPaid) {
+        this.customerPaid = customerPaid;
+    }
+
+    public HistoryObject(String rideId, String time, String customerPaid){
+        this.rideId = rideId;
+        this.time = time;
+        this.customerPaid = customerPaid;
     }
 
     public String getRideId(){return rideId;}

@@ -5,6 +5,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Build;
@@ -15,6 +16,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
+import android.text.Html;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CompoundButton;
@@ -72,7 +74,7 @@ public class DriverMapActivity extends FragmentActivity implements OnMapReadyCal
     private FusedLocationProviderClient mFusedLocationClient;
 
 
-    private Button mLogout, mSettings, mRideStatus, mHistory;
+    private Button mLogout, mSettings, mRideStatus, mHistory,cancelStatus;
 
     private Switch mWorkingSwitch;
 
@@ -81,6 +83,8 @@ public class DriverMapActivity extends FragmentActivity implements OnMapReadyCal
     private String customerId = "", destination;
     private LatLng destinationLatLng, pickupLatLng;
     private float rideDistance;
+
+    String driverHistory,publicHistory;
 
     private Boolean isLoggingOut = false;
 
@@ -114,6 +118,7 @@ public class DriverMapActivity extends FragmentActivity implements OnMapReadyCal
         mCustomerName = (TextView) findViewById(R.id.customerName);
         mCustomerPhone = (TextView) findViewById(R.id.customerPhone);
         mCustomerDestination = (TextView) findViewById(R.id.customerDestination);
+        cancelStatus= findViewById(R.id.cancelStatus);
 
         mWorkingSwitch = (Switch) findViewById(R.id.workingSwitch);
 
@@ -132,6 +137,31 @@ public class DriverMapActivity extends FragmentActivity implements OnMapReadyCal
         mLogout = (Button) findViewById(R.id.logout);
         mRideStatus = (Button) findViewById(R.id.rideStatus);
         mHistory = (Button) findViewById(R.id.history);
+
+        cancelStatus.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String driverId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+                final DatabaseReference assignedCustomerRef = FirebaseDatabase.getInstance().getReference().child("Users").child("Drivers").child(driverId).child("customerRequest");
+                assignedCustomerRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        if(dataSnapshot.exists()) {
+                            Map<String, Object> map = (Map<String, Object>) dataSnapshot.getValue();
+                            map.put("flag",2);
+                            assignedCustomerRef.updateChildren(map);
+                            mCustomerInfo.setVisibility(View.GONE);
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+                    }
+                });
+            }
+        });
+
+
 
 
 
@@ -217,7 +247,10 @@ public class DriverMapActivity extends FragmentActivity implements OnMapReadyCal
             }
         });
         getAssignedCustomer();
+
     }
+
+
 
     private void getAssignedCustomer(){
         String driverId = FirebaseAuth.getInstance().getCurrentUser().getUid();
@@ -235,6 +268,7 @@ public class DriverMapActivity extends FragmentActivity implements OnMapReadyCal
 
                 }else{
                     endRide();
+
                 }
             }
 
@@ -377,6 +411,13 @@ public class DriverMapActivity extends FragmentActivity implements OnMapReadyCal
         mCustomerPhone.setText("");
         mCustomerDestination.setText("Destination: --");
         mCustomerProfileImage.setImageResource(R.mipmap.ic_default_user);
+
+//        DatabaseReference refWorking = FirebaseDatabase.getInstance().getReference("driversWorking");
+//        HashMap map1 = new HashMap();
+//        map1.put("status","0");
+//        refWorking.child(userId).updateChildren(map1);
+
+
     }
 
     private void recordRide(){
@@ -399,7 +440,15 @@ public class DriverMapActivity extends FragmentActivity implements OnMapReadyCal
         map.put("location/to/lat", destinationLatLng.latitude);
         map.put("location/to/lng", destinationLatLng.longitude);
         map.put("distance", rideDistance);
+        map.put("customerPaid","false");
         historyRef.child(requestId).updateChildren(map);
+
+//        DatabaseReference refWorking = FirebaseDatabase.getInstance().getReference("driversWorking");
+//        HashMap map1 = new HashMap();
+//        map1.put("status","1");
+//        refWorking.child(userId).updateChildren(map1);
+
+
     }
 
     private Long getCurrentTimestamp() {
@@ -432,6 +481,8 @@ public class DriverMapActivity extends FragmentActivity implements OnMapReadyCal
         public void onLocationResult(LocationResult locationResult) {
             for(Location location : locationResult.getLocations()){
                 if(getApplicationContext()!=null){
+
+
 
                     if(!customerId.equals("") && mLastLocation!=null && location != null){
                         rideDistance += mLastLocation.distanceTo(location)/1000;
@@ -535,7 +586,7 @@ public class DriverMapActivity extends FragmentActivity implements OnMapReadyCal
     @Override
     public void onRoutingFailure(RouteException e) {
         if(e != null) {
-            Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+//            Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }else {
             Toast.makeText(this, "Something went wrong, Try again", Toast.LENGTH_SHORT).show();
         }

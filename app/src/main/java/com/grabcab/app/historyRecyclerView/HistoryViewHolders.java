@@ -2,8 +2,10 @@ package com.grabcab.app.historyRecyclerView;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.grabcab.app.HistorySingleActivity;
@@ -17,12 +19,14 @@ public class HistoryViewHolders extends RecyclerView.ViewHolder implements View.
 
     public TextView rideId;
     public TextView time;
+    public LinearLayout card;
     public HistoryViewHolders(View itemView) {
         super(itemView);
         itemView.setOnClickListener(this);
 
         rideId = (TextView) itemView.findViewById(R.id.rideId);
         time = (TextView) itemView.findViewById(R.id.time);
+        card = itemView.findViewById(R.id.card);
     }
 
 

@@ -29,6 +29,7 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Locale;
 
 import okhttp3.Call;
@@ -119,6 +120,7 @@ public class HistoryActivity extends AppCompatActivity {
                     Long timestamp = 0L;
                     String distance = "";
                     Double ridePrice = 0.0;
+                    String customerPaid = null;
 
                     if(dataSnapshot.child("timestamp").getValue() != null){
                         timestamp = Long.valueOf(dataSnapshot.child("timestamp").getValue().toString());
@@ -133,8 +135,9 @@ public class HistoryActivity extends AppCompatActivity {
                     }
 
 
-                    HistoryObject obj = new HistoryObject(rideId, getDate(timestamp));
+                    HistoryObject obj = new HistoryObject(rideId, getDate(timestamp),dataSnapshot.child("customerPaid").getValue().toString());
                     resultsHistory.add(obj);
+                    Collections.reverse(resultsHistory);
                     mHistoryAdapter.notifyDataSetChanged();
                 }
             }

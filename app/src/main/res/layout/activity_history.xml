@@ -8,6 +8,7 @@
     tools:context="com.grabcab.app.HistoryActivity"
     android:fitsSystemWindows="true"
     android:orientation="vertical"
+    android:background="#efefef"
     android:id="@+id/layout">
     <LinearLayout
         android:layout_width="match_parent"
@@ -38,6 +39,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent">
             <android.support.v7.widget.RecyclerView
+                android:background="#efefef"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:id="@+id/historyRecyclerView"

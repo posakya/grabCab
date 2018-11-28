@@ -37,9 +37,18 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryViewHolders> {
     @Override
     public void onBindViewHolder(HistoryViewHolders holder, final int position) {
         holder.rideId.setText(itemList.get(position).getRideId());
+        HistoryObject historyObject = itemList.get(position);
+
         if(itemList.get(position).getTime()!=null){
             holder.time.setText(itemList.get(position).getTime());
+
         }
+
+        if (historyObject.getCustomerPaid().equals("true")){
+            holder.card.setBackgroundColor(context.getResources().getColor(R.color.grey));
+        }
+
+
     }
     @Override
     public int getItemCount() {

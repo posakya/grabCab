@@ -36,6 +36,13 @@
                 android:text="distance"
                 android:layout_marginBottom="20sp"
                 android:id="@+id/rideDistance"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="distance"
+                android:layout_marginBottom="20sp"
+                android:id="@+id/ridePrice"/>
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -80,12 +87,28 @@
             android:layout_gravity="center"
             android:numStars="5"
             android:stepSize="1"
-            android:visibility="gone"/>*-
+            android:visibility="gone"/>
         <Button
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/pay"
             android:text="Pay Here"
+            android:visibility="gone"
+            android:enabled="false"/>
+
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/btnApprove"
+            android:text="Payment Done"
+            android:visibility="gone"
+            android:enabled="false"/>
+
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/payCash"
+            android:text="Cash in Hand"
             android:visibility="gone"
             android:enabled="false"/>
     </LinearLayout>
